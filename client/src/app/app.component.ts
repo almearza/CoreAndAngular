@@ -1,5 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
+import { User } from './_models/user';
+import { AccountService } from './_services/account.service';
 
 @Component({
   selector: 'app-root',
@@ -9,18 +11,16 @@ import { Component, OnInit } from '@angular/core';
 export class AppComponent implements OnInit {
 
   ngOnInit(): void {
-    this.getClient();
+    this.setCurrentUser();
   }
-  users: any;
-  title = 'client';
-  constructor(private httpClient: HttpClient) {
+  setCurrentUser(){
+    //if we close browser and open it agian we get this value from storage and set the observable
+   const user:User=JSON.parse(localStorage.getItem('user'));
+   this.accountService.setCurrentUser(user);
   }
-  getClient() {
-    this.httpClient.get("https://localhost:5001/api/users").subscribe(response => {
-      this.users = response;
-    },error=>{console.log(error);
-     });
+  constructor(private accountService:AccountService) {
   }
+ 
 }
 
 
