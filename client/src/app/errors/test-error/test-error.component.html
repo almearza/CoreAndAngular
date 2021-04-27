@@ -1,0 +1,11 @@
+<button class="btn btn-outline-primary mr-5" (click)="get401Error()">get401</button>
+<button class="btn btn-outline-primary mr-5" (click)="get500Error()">get500</button>
+<button class="btn btn-outline-primary mr-5" (click)="get404Error()">get404</button>
+<button class="btn btn-outline-primary mr-5" (click)="get400Error()">get400</button>
+<div class="mt-5 row" *ngIf="arrayOfErrors.length>0">
+    <ul class="text-danger">
+        <li *ngFor="let error of arrayOfErrors">
+            {{error}}
+        </li>
+    </ul>
+</div>

@@ -1,0 +1,1 @@
+export interface errorResponse{message:string,details:string};
