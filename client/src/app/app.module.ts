@@ -19,7 +19,10 @@ import { ToastrModule } from 'ngx-toastr';
 import { TestErrorComponent } from './errors/test-error/test-error.component';
 import { ErrorInterceptor } from './_interceptors/error.interceptor';
 import { NotFoundComponent } from './not-found/not-found.component';
-import { ServerErrorComponent } from './server-error/server-error.component';
+import { MemberCardComponent } from './member-card/member-card.component';
+import { JwtInterceptor } from './_interceptors/jwt.interceptor';
+import { SharedModule } from './shared/shared.module';
+import { NgxGalleryModule } from '@kolkov/ngx-gallery';
 @NgModule({
   declarations: [
     AppComponent,
@@ -32,7 +35,7 @@ import { ServerErrorComponent } from './server-error/server-error.component';
     ListsComponent,
     TestErrorComponent,
     NotFoundComponent,
-    ServerErrorComponent
+    MemberCardComponent,
   ],
   imports: [
     BrowserModule,
@@ -44,9 +47,12 @@ import { ServerErrorComponent } from './server-error/server-error.component';
     ToastrModule.forRoot({
       positionClass:"toast-bottom-right"
     }),
+    SharedModule,
+    NgxGalleryModule
   ],
   providers: [
-    {provide:HTTP_INTERCEPTORS,useClass:ErrorInterceptor,multi:true}
+    {provide:HTTP_INTERCEPTORS,useClass:ErrorInterceptor,multi:true},
+    {provide:HTTP_INTERCEPTORS,useClass:JwtInterceptor,multi:true}
   ],
   bootstrap: [AppComponent]
 })

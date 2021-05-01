@@ -1,3 +1,4 @@
+using System;
 using API.Data;
 using API.Helpers;
 using API.Interfaces;
@@ -16,6 +17,7 @@ namespace API.Extensions
             services.AddDbContext<DContext>(options =>
             {
                 options.UseSqlite(config.GetConnectionString("DefaultConnection"));
+                options.LogTo(Console.WriteLine);
             });
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddAutoMapper(typeof (AutoMapperProfiles).Assembly);

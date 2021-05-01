@@ -5,6 +5,7 @@ namespace API.Data
 {
     public class DContext : DbContext
     {
+
         public DContext([NotNullAttribute] DbContextOptions options) : base(options)
         {
         }

@@ -7,6 +7,7 @@ namespace API.Dtos
     {
         public int Id { get; set; }
         public string Username { get; set; }
+        public string PhotoUrl { get; set; }
         public string KnownUs { get; set; }
         public int Age { get; set; }
         public DateTime Created { get; set; }
