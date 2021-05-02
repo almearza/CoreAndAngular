@@ -23,6 +23,7 @@ import { MemberCardComponent } from './member-card/member-card.component';
 import { JwtInterceptor } from './_interceptors/jwt.interceptor';
 import { SharedModule } from './shared/shared.module';
 import { NgxGalleryModule } from '@kolkov/ngx-gallery';
+import { MemberEditComponent } from './members/member-edit/member-edit.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -36,6 +37,7 @@ import { NgxGalleryModule } from '@kolkov/ngx-gallery';
     TestErrorComponent,
     NotFoundComponent,
     MemberCardComponent,
+    MemberEditComponent,
   ],
   imports: [
     BrowserModule,
