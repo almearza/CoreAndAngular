@@ -22,12 +22,12 @@ namespace API.Controllers
         [HttpPost("register")]
         public async Task<ActionResult<UserDto>> Register(RegisterDto registerDto)
         {
-            if (await IsRegistered(registerDto.UserName.ToLower()))
+            if (await IsRegistered(registerDto.Username.ToLower()))
                 return BadRequest("Username already exsit !");
             using var hmac = new HMACSHA512();
             var user = new AppUser
             {
-                UserName = registerDto.UserName.ToLower(),
+                UserName = registerDto.Username.ToLower(),
                 PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDto.Password)),
                 PasswordSalt = hmac.Key
             };
@@ -35,7 +35,7 @@ namespace API.Controllers
             await _context.SaveChangesAsync();
             return new UserDto
             {
-                UserName = user.UserName,
+                Username = user.UserName,
                 Token=_tokenService.CreateToken(user)
             };
         }
@@ -55,9 +55,9 @@ namespace API.Controllers
             }
             return  new UserDto
             {
-                UserName = user.UserName,
+                Username = user.UserName,
                 Token=_tokenService.CreateToken(user)
-            };;
+            };
 
         }
         private async Task<bool> IsRegistered(string username)
