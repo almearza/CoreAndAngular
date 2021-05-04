@@ -16,7 +16,8 @@ export class MemberEditComponent implements OnInit {
   member: Member;
   user: User;
   @ViewChild("editForm") editForm: NgForm;
-  @HostListener('window:beforeunload', ['$event']) unloadNotification($event: any) {
+  @HostListener('window:beforeunload', ['$event'])
+  unloadNotification($event: any) {
     if (this.editForm.dirty) $event.returnValue = true;
   }
   constructor(private accountService: AccountService, private memberService: MemberService, private toastr: ToastrService) {
@@ -35,8 +36,10 @@ export class MemberEditComponent implements OnInit {
     })
   }
   updateMember() {
-    this.toastr.success('member edited !');
-    this.editForm.reset(this.member);
+    this.memberService.updateMember(this.member).subscribe(() => {
+      this.toastr.success('member edited !');
+      this.editForm.reset(this.member);
+    })
   }
 
 }
