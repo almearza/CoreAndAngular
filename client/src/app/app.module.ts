@@ -27,6 +27,7 @@ import { MemberEditComponent } from './members/member-edit/member-edit.component
 import { LoadingInterceptor } from './_interceptors/loading.interceptor';
 import { NgxSpinnerModule } from 'ngx-spinner';
 import { PhotoEditorComponent } from './photo-editor/photo-editor.component';
+import { FileUploader } from 'ng2-file-upload';
 @NgModule({
   declarations: [
     AppComponent,
@@ -55,7 +56,8 @@ import { PhotoEditorComponent } from './photo-editor/photo-editor.component';
     }),
     SharedModule,
     NgxGalleryModule,
-    NgxSpinnerModule
+    NgxSpinnerModule,
+    FileUploader,
   ],
   providers: [
     {provide:HTTP_INTERCEPTORS,useClass:ErrorInterceptor,multi:true},
