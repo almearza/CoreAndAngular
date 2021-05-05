@@ -26,6 +26,7 @@ import { NgxGalleryModule } from '@kolkov/ngx-gallery';
 import { MemberEditComponent } from './members/member-edit/member-edit.component';
 import { LoadingInterceptor } from './_interceptors/loading.interceptor';
 import { NgxSpinnerModule } from 'ngx-spinner';
+import { PhotoEditorComponent } from './photo-editor/photo-editor.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -40,6 +41,7 @@ import { NgxSpinnerModule } from 'ngx-spinner';
     NotFoundComponent,
     MemberCardComponent,
     MemberEditComponent,
+    PhotoEditorComponent,
   ],
   imports: [
     BrowserModule,

@@ -5,9 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 using API.Data;
 using API.Dtos;
+using API.Extensions;
 using API.Interfaces;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,8 +21,10 @@ namespace API.Controllers
         private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
         private readonly DContext _context;
-        public UsersController(IUserRepository userRepository, IMapper mapper, DContext context)
+        private readonly IPhotoService _photoService;
+        public UsersController(IUserRepository userRepository, IMapper mapper, DContext context, IPhotoService photoService)
         {
+            this._photoService = photoService;
             _context = context;
             this._mapper = mapper;
             this._userRepository = userRepository;
@@ -34,7 +38,7 @@ namespace API.Controllers
             return Ok(users);
         }
         // [Authorize]
-        [HttpGet("{username}")]
+        [HttpGet("{username}",Name="GetUser")]
         public async Task<ActionResult<MemberDto>> GetUser(string username)
         {
             var user = await _userRepository.GetMemberByUserNameAsync(username);
@@ -44,7 +48,7 @@ namespace API.Controllers
         [HttpPut]
         public async Task<ActionResult> UpdateUser(MemberUpdateDto memberUpdateDto)
         {
-            var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var username = User.GetUserame();
             var user = await _userRepository.GetUserByUserNameAsync(username);
             _mapper.Map(memberUpdateDto, user);
             _userRepository.Update(user);
@@ -65,7 +69,26 @@ namespace API.Controllers
         //     await _context.SaveChangesAsync();
         //     return users;
         // }
+        [HttpPost("add-photo")]
+        public async Task<ActionResult<PhotoDto>> UploadPhoto(IFormFile file)
+        {
+            var user = await _userRepository.GetUserByUserNameAsync(User.GetUserame());
+            var result = await _photoService.UploadPhotoAsync(file);
+            if (result.Error != null) return BadRequest(result.Error.Message);
+            var photo = new Photo
+            {
+                Url = result.SecureUrl.AbsoluteUri,
+                PublicId = result.PublicId
+            };
+            if (user.Photos.Count == 0)
+                photo.IsMain = true;
 
+            user.Photos.Add(photo);
+            if (await _userRepository.SaveAllAsync())
+                // return _mapper.Map<PhotoDto>(photo);
+                return CreatedAtRoute("GetUser",new{username=user.UserName},_mapper.Map<PhotoDto>(photo));
+            return BadRequest("something went wring while saving photo");
+        }
 
     }
 }
