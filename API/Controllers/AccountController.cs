@@ -6,6 +6,7 @@ using System.Text;
 using Microsoft.EntityFrameworkCore;
 using API.Dtos;
 using API.Interfaces;
+using System.Linq;
 
 namespace API.Controllers
 {
@@ -13,8 +14,10 @@ namespace API.Controllers
     {
         private readonly DContext _context;
         private readonly ITokenService _tokenService;
-        public AccountController(DContext context, ITokenService tokenService)
+        private readonly IUserRepository _userRepository;
+        public AccountController(DContext context, ITokenService tokenService, IUserRepository userRepository)
         {
+            this._userRepository = userRepository;
             _tokenService = tokenService;
             _context = context;
 
@@ -36,14 +39,13 @@ namespace API.Controllers
             return new UserDto
             {
                 Username = user.UserName,
-                Token=_tokenService.CreateToken(user)
+                Token = _tokenService.CreateToken(user)
             };
         }
         [HttpPost("login")]
         public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
         {
-            var user = await _context.AppUsers
-            .SingleOrDefaultAsync(u => u.UserName == loginDto.UserName.ToLower());
+            var user =await _userRepository.GetUserByUserNameAsync(loginDto.UserName.ToLower());
             if (user == null) return Unauthorized("invalid username");
             var hmac = new HMACSHA512(user.PasswordSalt);
             var loginHashPass = hmac.ComputeHash(Encoding.UTF8.GetBytes(loginDto.Password));
@@ -53,10 +55,11 @@ namespace API.Controllers
                 if (user.PasswordHash[i] != loginHashPass[i])
                     return Unauthorized("invalid password !");
             }
-            return  new UserDto
+            return new UserDto
             {
                 Username = user.UserName,
-                Token=_tokenService.CreateToken(user)
+                Token = _tokenService.CreateToken(user),
+                PhotoUrl = user.Photos?.FirstOrDefault(Photo => Photo.IsMain)?.Url
             };
 
         }
