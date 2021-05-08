@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using API.Dtos;
 using API.Interfaces;
 using System.Linq;
+using AutoMapper;
 
 namespace API.Controllers
 {
@@ -15,8 +16,11 @@ namespace API.Controllers
         private readonly DContext _context;
         private readonly ITokenService _tokenService;
         private readonly IUserRepository _userRepository;
-        public AccountController(DContext context, ITokenService tokenService, IUserRepository userRepository)
+        private readonly IMapper _mapper;
+        public AccountController(DContext context, ITokenService tokenService,
+        IUserRepository userRepository, IMapper mapper)
         {
+            _mapper = mapper;
             this._userRepository = userRepository;
             _tokenService = tokenService;
             _context = context;
@@ -28,24 +32,23 @@ namespace API.Controllers
             if (await IsRegistered(registerDto.Username.ToLower()))
                 return BadRequest("Username already exsit !");
             using var hmac = new HMACSHA512();
-            var user = new AppUser
-            {
-                UserName = registerDto.Username.ToLower(),
-                PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDto.Password)),
-                PasswordSalt = hmac.Key
-            };
+            var user = _mapper.Map<AppUser>(registerDto);
+            user.UserName = registerDto.Username.ToLower();
+            user.PasswordSalt = hmac.Key;
+            user.PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDto.Password));
             _context.AppUsers.Add(user);
             await _context.SaveChangesAsync();
             return new UserDto
             {
                 Username = user.UserName,
-                Token = _tokenService.CreateToken(user)
+                Token = _tokenService.CreateToken(user),
+                KnownUs=user.KnownUs
             };
         }
         [HttpPost("login")]
         public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
         {
-            var user =await _userRepository.GetUserByUserNameAsync(loginDto.UserName.ToLower());
+            var user = await _userRepository.GetUserByUserNameAsync(loginDto.UserName.ToLower());
             if (user == null) return Unauthorized("invalid username");
             var hmac = new HMACSHA512(user.PasswordSalt);
             var loginHashPass = hmac.ComputeHash(Encoding.UTF8.GetBytes(loginDto.Password));
@@ -59,7 +62,8 @@ namespace API.Controllers
             {
                 Username = user.UserName,
                 Token = _tokenService.CreateToken(user),
-                PhotoUrl = user.Photos?.FirstOrDefault(Photo => Photo.IsMain)?.Url
+                PhotoUrl = user.Photos?.FirstOrDefault(Photo => Photo.IsMain)?.Url,
+                KnownUs=user.KnownUs
             };
 
         }
