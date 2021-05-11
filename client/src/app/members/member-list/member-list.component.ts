@@ -15,19 +15,16 @@ import { MemberService } from 'src/app/_services/member.service';
 })
 export class MemberListComponent implements OnInit {
   members: Member[];
-  user: User;
+  // user: User;
   filterList = [{ value: 'male', display: 'Male' }, { value: 'female', display: 'Female' }]
 
-  userPrams = new UserPrams();
+  userPrams:UserPrams;
   pageNumber = 1;
   pageSize = 5;
   pagination: Pagination;
   // members$:Observable<Member[]>;
-  constructor(private memberService: MemberService, private accountService: AccountService) {
-    this.accountService.currentUser$.pipe(take(1)).subscribe(user => {
-      this.user = user;
-    });
-    this.userPrams.gender = this.user.gender;
+  constructor(private memberService: MemberService) {
+    this.userPrams=this.memberService.getUserPrams();
   }
 
   ngOnInit(): void {
@@ -35,7 +32,7 @@ export class MemberListComponent implements OnInit {
     this.loadMembers();
   }
   loadMembers() {
-
+this.memberService.setUserPrams(this.userPrams)
     this.memberService.getMembers(this.userPrams).subscribe(response => {
       this.members = response.result;
       this.pagination = response.pagination;
@@ -46,7 +43,8 @@ export class MemberListComponent implements OnInit {
     this.loadMembers();
   }
   resetFilter(){
-    this.userPrams.gender=this.user.gender;
+    this.userPrams = this.memberService.resetFilters();
+    this.memberService.setUserPrams(this.userPrams);
     this.loadMembers();
   }
 }

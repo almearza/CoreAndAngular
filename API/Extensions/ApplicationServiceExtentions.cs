@@ -16,6 +16,7 @@ namespace API.Extensions
             services.Configure<CloudinarySettings>(config.GetSection("CloudinarySettings"));
             services.AddScoped<IPhotoService,PhotoService>();
             services.AddScoped<ITokenService, TokenService>();
+            services.AddScoped<LogUserActivity>();
             services.AddDbContext<DContext>(options =>
             {
                 options.UseSqlite(config.GetConnectionString("DefaultConnection"));

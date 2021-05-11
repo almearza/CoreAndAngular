@@ -2,7 +2,46 @@
     <h2>Your matches - {{pagination?.totalItems}} found</h2>
 </div>
 <div class="container mt-3">
-    <form #form="ngForm" class="mb-3 form-inline" (ngSubmit)="loadMembers()" autocomplete="off"></form>
+    <form #form="ngForm" class="mb-3 form-inline" (ngSubmit)="loadMembers()" autocomplete="off">
+        <div class="form-group">
+            <label>Age from:</label>
+            <input type="number" class="form-control ml-1" style="width: 70px;"
+             name="minAge" [(ngModel)]="userPrams.minAge">
+        </div>
+        <div class="form-group">
+            <label>Age to:</label>
+            <input type="number" class="form-control ml-1" style="width: 70px;"
+            name="maxAge" [(ngModel)]="userPrams.maxAge">
+        </div>
+        <div class="form-group mx-2">
+            <select name="gender" [(ngModel)]="userPrams.gender" style="width: 130px;"
+             class="form-control ml-1">
+            <option *ngFor="let gender of filterList" selected="selected" value="{{gender.value}}">{{gender.display}}</option>
+            </select>
+        </div>
+        <button class="btn btn-primary ml-1" type="submit">Apply filters</button>
+        <button (click)="resetFilter()" class="btn btn-info ml-1" type="submit">Reset filters</button>
+        <div class="col">
+            <div class="float-right btn-group">
+                <button 
+                type="button"
+                class="btn btn-primary"
+                name="orderBy"
+                [(ngModel)]="userPrams.orderBy"
+                (click)="loadMembers()"
+                btnRadio='lastActive'
+                >Last Active</button>
+                <button 
+                type="button"
+                class="btn btn-primary"
+                name="orderBy"
+                [(ngModel)]="userPrams.orderBy"
+                (click)="loadMembers()"
+                btnRadio='created'
+                >New Members</button>
+            </div>
+        </div>
+    </form>
 </div>
 <div class="row">
     <div *ngFor="let member of members" class="col-2">

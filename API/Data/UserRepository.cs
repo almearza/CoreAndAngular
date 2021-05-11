@@ -61,6 +61,11 @@ namespace API.Data
             var minDob = DateTime.Today.AddYears(-userPrams.MaxAge - 1);
             var maxDob = DateTime.Today.AddYears(-userPrams.MinAge);
             query=query.Where(u=>u.BirthDate>=minDob && u.BirthDate<=maxDob);
+
+            query = userPrams.OrderBy switch{
+                "created"=>query.OrderByDescending(u=>u.Created),
+                _=>query.OrderByDescending(u=>u.LastActive)
+            };
             // .AsNoTracking();
 
             return await PageList<MemberDto>.CreateAsync(query
