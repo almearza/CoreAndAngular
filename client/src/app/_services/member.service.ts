@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { of } from 'rxjs';
 import { map, take } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
+import { LikeParams } from '../_models/likesparams';
 import { Member } from '../_models/member';
 import { Paginatted } from '../_models/pagination';
 import { User } from '../_models/user';
@@ -34,6 +35,14 @@ export class MemberService {
     });
     this.userPrams = new UserPrams(this.user);
   }
+  addLike(username:string){
+   return this.http.post(this.baseUrl+'likes/'+username,{});
+  }
+  getLikes(likesParams:LikeParams){
+    let prams = this.getPaginattedHeaders(likesParams.pageNumber,likesParams.pageSize);
+    prams = prams.append('predicate',likesParams.predicate);
+   return this.getPaginattedResult<Partial<Member[]>>(this.baseUrl+'likes',prams);
+  }
   getUserPrams() {
     return this.userPrams;
   }
@@ -48,7 +57,11 @@ export class MemberService {
     let membersFromCach = this.memberCach.get(Object.values(userPrams).join('_'));
     if (membersFromCach)
       return of(membersFromCach);
-    let prams = this.getPrams(userPrams);
+    let prams = this.getPaginattedHeaders(userPrams.pageNumber,userPrams.pageSize);
+    prams = prams.append('minAge', userPrams.minAge.toString());
+    prams = prams.append('maxAge', userPrams.maxAge.toString());
+    prams = prams.append('gender', userPrams.gender);
+    prams = prams.append('orderBy', userPrams.orderBy);
     return this.getPaginattedResult<Member[]>(this.baseUrl + 'users', prams)
       .pipe(map(response => {
         this.memberCach.set(Object.values(userPrams).join('_'), response);
@@ -80,14 +93,10 @@ export class MemberService {
   deletePhoto(photoId: number) {
     return this.http.delete(this.baseUrl + 'users/delete-photo/' + photoId);
   }
-  getPrams(userPrams: UserPrams): HttpParams {
+  getPaginattedHeaders(pageNumber:number,pageSize:number): HttpParams {
     let httpPrams = new HttpParams();
-    httpPrams = httpPrams.append('pageNumber', userPrams.pageNumber.toString());
-    httpPrams = httpPrams.append('pageSize', userPrams.pageSize.toString());
-    httpPrams = httpPrams.append('minAge', userPrams.minAge.toString());
-    httpPrams = httpPrams.append('maxAge', userPrams.maxAge.toString());
-    httpPrams = httpPrams.append('gender', userPrams.gender);
-    httpPrams = httpPrams.append('orderBy', userPrams.orderBy);
+    httpPrams = httpPrams.append('pageNumber', pageNumber.toString());
+    httpPrams = httpPrams.append('pageSize', pageSize.toString());
     return httpPrams;
   }
   getPaginattedResult<T>(url: string, httpPrams: HttpParams) {

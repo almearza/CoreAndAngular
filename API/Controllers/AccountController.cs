@@ -8,6 +8,7 @@ using API.Dtos;
 using API.Interfaces;
 using System.Linq;
 using AutoMapper;
+using API.Entities;
 
 namespace API.Controllers
 {

@@ -8,7 +8,7 @@ using API.Interfaces;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
-
+using API.Entities;
 namespace API.Data
 {
     public class UserRepository : IUserRepository

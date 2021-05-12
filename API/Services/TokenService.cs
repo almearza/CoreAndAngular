@@ -6,7 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using System;
 using Microsoft.Extensions.Configuration;
 using System.Text;
-
+using API.Entities;
 namespace API.Services
 {
     public class TokenService : ITokenService

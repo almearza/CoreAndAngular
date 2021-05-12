@@ -12,7 +12,7 @@ import { NavigationExtras, Router } from '@angular/router';
 
 @Injectable()
 export class ErrorInterceptor implements HttpInterceptor {
-  constructor(private toastr: ToastrService,private router: Router) { }
+  constructor(private toastr: ToastrService, private router: Router) { }
 
   intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
     return next.handle(request).pipe(
@@ -28,13 +28,15 @@ export class ErrorInterceptor implements HttpInterceptor {
                   }
                 }
                 throw modalStateErrors.flat();//convert array to flat object
+              } else if (error.error === 'object') {
+                this.toastr.error(error.statusText, error.status);
               } else {
-                this.toastr.error(error.statusText,error.status);
+                this.toastr.error(error.error, error.statusCode);
               }
               break;
-              case 401:
-                this.toastr.error(error.statusText,error.status);
-                break;
+            case 401:
+              this.toastr.error(error.statusText, error.status);
+              break;
             case 404:
               this.router.navigateByUrl("/not-found");
               break;
@@ -42,10 +44,10 @@ export class ErrorInterceptor implements HttpInterceptor {
               const navigationExtra: NavigationExtras = { state: { error: error.error } };
               this.router.navigateByUrl('server-error', navigationExtra);
               break;
-              default:
-                this.toastr.error('something went wrong');
-                console.log(error);
-                break;
+            default:
+              this.toastr.error('something went wrong');
+              console.log(error);
+              break;
           }
         }
         return throwError(error);
