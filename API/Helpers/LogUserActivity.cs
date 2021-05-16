@@ -9,12 +9,12 @@ namespace API.Helpers
 {
     public class LogUserActivity : IAsyncActionFilter
     {
-        // private readonly IUserRepository _userRepository;
-        // public LogUserActivity(IUserRepository userRepository)
-        // {
-        //     _userRepository = userRepository;
+        private readonly IUserRepository _userRepository;
+        public LogUserActivity(IUserRepository userRepository)
+        {
+            _userRepository = userRepository;
 
-        // }
+        }
         public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
         {
             var resultContext = await next();

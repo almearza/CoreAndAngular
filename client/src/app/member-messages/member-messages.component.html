@@ -1,0 +1,44 @@
+<div class="card">
+    <div class="card-body">
+        <div *ngIf="messages?.length===0">
+            <h3>No messages</h3>
+        </div>
+        <ul *ngIf="messages?.length>0" class="chat">
+            <li *ngFor="let message of messages">
+                <span class="chat-img float-right">
+                    <img src="{{message.senderPhotoUrl || './assets/user.png'}}" alt="" class="rounded-circle">
+                </span>
+                <div class="chat-body">
+                    <div class="header">
+                        <small class="text-muted">
+                            <span class="fa fa-clock-o"> {{message.messageSent | timeago}}</span>
+                            <span class="text-danger" *ngIf="!message.messageRead && 
+                                                            message.senderUsername!==username">
+                                (unread)
+                            </span>
+                            <span class="text-danger" *ngIf="message.messageRead && 
+                            message.senderUsername!==username">
+                                (read) {{message.messageRead | timeago}}
+                            </span>
+                        </small>
+                    </div>
+                    <p>{{message.content}}</p>
+                </div>
+            </li>
+        </ul>
+    </div>
+    <div class="card-footer">
+        <form #sendMessageForm="ngForm" (ngSubmit)="sendMessage()">
+            <div class="input-group">
+                <input 
+                [(ngModel)]="messageContent"
+                name="messageContent"
+                required
+                type="text" class="form-control input-small" placeholder="send private message">
+                <div class="input-group-append">
+                    <button [disabled]='!sendMessageForm.valid' class="btn btn-primary" type="submit">Send</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

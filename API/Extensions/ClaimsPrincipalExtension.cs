@@ -5,7 +5,7 @@ namespace API.Extensions
 {
     public static class ClaimsPrincipalExtension
     {
-        public static string GetUserame(this ClaimsPrincipal user)
+        public static string GetUsername(this ClaimsPrincipal user)
         {
             return user.FindFirst(ClaimTypes.Name)?.Value;//Name represnt UniqeName in Token Claims
         }

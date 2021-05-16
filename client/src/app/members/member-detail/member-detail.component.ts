@@ -1,8 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { NgxGalleryAnimation, NgxGalleryImage, NgxGalleryOptions } from '@kolkov/ngx-gallery';
+import { TabDirective, TabsetComponent } from 'ngx-bootstrap/tabs';
+import { ToastrService } from 'ngx-toastr';
 import { Member } from 'src/app/_models/member';
+import { Message } from 'src/app/_models/message';
 import { MemberService } from 'src/app/_services/member.service';
+import { MessageService } from 'src/app/_services/message.service';
 
 @Component({
   selector: 'app-member-detail',
@@ -10,40 +14,67 @@ import { MemberService } from 'src/app/_services/member.service';
   styleUrls: ['./member-detail.component.css']
 })
 export class MemberDetailComponent implements OnInit {
+  @ViewChild('memberTabs', { static: true }) memberTabs: TabsetComponent;
+  activeTab: TabDirective;
+  messages: Message[] = [];
+
   member: Member;
   galleryOptions: NgxGalleryOptions[];
   galleryImages: NgxGalleryImage[];
-  constructor(private memberService: MemberService, private router: ActivatedRoute) { }
+  constructor(private memberService: MemberService,
+    private router: ActivatedRoute,
+     private messageService: MessageService,
+     private toastr:ToastrService) { }
 
   ngOnInit(): void {
-    this.getMember();
+    this.router.data.subscribe(data => {
+      this.member = data.member;//member:key we used when we add resolver to route in approuting
+    });
+    this.router.queryParams.subscribe(pram => {
+      pram.tab ? this.activateTab(pram.tab) : this.activateTab(0);
+    });
     this.galleryOptions = [
       {
         width: '500px',
         height: '500px',
         thumbnailsColumns: 4,
         imageAnimation: NgxGalleryAnimation.Slide,
-        preview:false
+        preview: false
       }
     ];
-    
+    this.galleryImages = this.getImages();
+
   }
-  getImages():NgxGalleryImage[]{
-    const ngxImages=[];
-      for(const photo of this.member.photos){
-        ngxImages.push({
-          small:photo?.url,
-          medium:photo?.url,
-          big:photo?.url
-        });
-      }
+  addLike(){
+    this.memberService.addLike(this.member.username).subscribe(response=>{
+      this.toastr.success('you liked '+ this.member.knownUs);
+    });
+  }
+  getImages(): NgxGalleryImage[] {
+    const ngxImages = [];
+    for (const photo of this.member.photos) {
+      ngxImages.push({
+        small: photo?.url,
+        medium: photo?.url,
+        big: photo?.url
+      });
+    }
     return ngxImages;
   }
-  getMember() {
-    this.memberService.getMember(this.router.snapshot.paramMap.get('username'))
-      .subscribe(member => {
-        this.member=member;
-        this.galleryImages=this.getImages();
-      });
+
+  activateTab(tabId: number) {
+    this.memberTabs.tabs[tabId].active = true;
+  }
+  onTabActivated(data: TabDirective) {
+    this.activeTab = data;
+    if (this.activeTab.heading === 'messages' && this.messages.length === 0) {
+      this.loadMessages();
+    }
+
+  }
+  loadMessages() {
+    this.messageService.getMessageThread(this.member.username).subscribe(response => {
+      this.messages = response;
+    })
   }
 }
