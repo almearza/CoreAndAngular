@@ -17,7 +17,7 @@ namespace API.Controllers
         }
         [HttpGet]
         public async Task<ActionResult<IEnumerable<AppUser>>> GetUsers(){
-         return await _context.AppUsers.ToListAsync();   
+         return await _context.Users.ToListAsync();   
         }
         [Authorize]
         [HttpGet("auth")]
@@ -26,13 +26,13 @@ namespace API.Controllers
         }
         [HttpGet("not-found")]
         public ActionResult<AppUser> GetNotFound(){
-         var user =  _context.AppUsers.Find(-1);
+         var user =  _context.Users.Find(-1);
          if(user==null)return NotFound();
          return user;
         }
         [HttpGet("server-error")]
         public ActionResult<string> GetServerError(){
-         return _context.AppUsers.Find(-1).ToString();
+         return _context.Users.Find(-1).ToString();
         }
         [HttpGet("bad-request")]
         public ActionResult GetBadRequest(){

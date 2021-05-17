@@ -22,17 +22,17 @@ namespace API.Data
         }
         public async Task<IEnumerable<AppUser>> GetUsersAsync()
         {
-            return await _context.AppUsers.Include(m => m.Photos).ToListAsync();
+            return await _context.Users.Include(m => m.Photos).ToListAsync();
         }
 
         public async Task<AppUser> GetUserByIdAsync(int id)
         {
-            return await _context.AppUsers.FindAsync(id);
+            return await _context.Users.FindAsync(id);
         }
 
         public async Task<AppUser> GetUserByUserNameAsync(string username)
         {
-            return await _context.AppUsers.Include(m => m.Photos).FirstOrDefaultAsync(m => m.UserName == username.ToLower());
+            return await _context.Users.Include(m => m.Photos).FirstOrDefaultAsync(m => m.UserName == username.ToLower());
         }
 
         public async Task<bool> SaveAllAsync()
@@ -47,14 +47,14 @@ namespace API.Data
 
         public async Task<MemberDto> GetMemberByUserNameAsync(string username)
         {
-            return await _context.AppUsers
+            return await _context.Users
             .ProjectTo<MemberDto>(_mapper.ConfigurationProvider)
             .FirstOrDefaultAsync(m => m.Username == username.ToLower());
         }
 
         public async Task<PageList<MemberDto>> GetMembersAsync(UserPrams userPrams)
         {
-            var query =  _context.AppUsers.AsQueryable();
+            var query =  _context.Users.AsQueryable();
             query = query.Where(u=>u.UserName!=userPrams.CurrentUsername);
             query = query.Where(u=>u.Gender==userPrams.Gender);
 
