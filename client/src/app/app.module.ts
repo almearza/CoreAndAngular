@@ -35,6 +35,8 @@ import{PaginationModule} from 'ngx-bootstrap/pagination'
 import{ButtonsModule} from 'ngx-bootstrap/buttons'
 import { TimeagoModule } from 'ngx-timeago';
 import { MemberMessagesComponent } from './member-messages/member-messages.component';
+import { AdminPanelComponent } from './admin/admin-panel/admin-panel.component';
+import { HasRoleDirective } from './_directives/has-role.directive';
 
 @NgModule({
   declarations: [
@@ -54,6 +56,8 @@ import { MemberMessagesComponent } from './member-messages/member-messages.compo
     TextInputComponent,
     DateInputComponent,
     MemberMessagesComponent,
+    AdminPanelComponent,
+    HasRoleDirective,
   ],
   imports: [
     BrowserModule,

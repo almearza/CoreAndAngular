@@ -13,8 +13,12 @@ namespace API.Extensions
     {
         public static IServiceCollection AddIdentityServiceExtensions(this IServiceCollection services, IConfiguration config)
         {
-            
-            services.AddIdentityCore<AppUser>()
+
+            services.AddIdentityCore<AppUser>(opt =>
+            {
+                opt.Password.RequireNonAlphanumeric = false;
+            }
+            )
             .AddRoles<AppRole>()
             .AddRoleManager<RoleManager<AppRole>>()
             .AddSignInManager<SignInManager<AppUser>>()
@@ -22,16 +26,21 @@ namespace API.Extensions
             .AddEntityFrameworkStores<DContext>();
 
 
-             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer(options =>
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+           .AddJwtBearer(options =>
+           {
+               options.TokenValidationParameters = new TokenValidationParameters
+               {
+                   ValidateIssuerSigningKey = true,
+                   IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["TokenKey"])),
+                   ValidateIssuer = false,
+                   ValidateAudience = false,
+               };
+           });
+            services.AddAuthorization(opt =>
             {
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["TokenKey"])),
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                };
+                opt.AddPolicy("RequireAdminRole", p => p.RequireRole("Admin"));
+                opt.AddPolicy("ModeratePhotoRole",p=>p.RequireRole("Moderator","Admin"));
             });
             return services;
         }

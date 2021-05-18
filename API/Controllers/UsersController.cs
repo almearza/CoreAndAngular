@@ -15,6 +15,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using API.Entities;
+using Microsoft.AspNetCore.Identity;
+
 namespace API.Controllers
 {
     [Authorize]
@@ -24,8 +26,14 @@ namespace API.Controllers
         private readonly IMapper _mapper;
         private readonly DContext _context;
         private readonly IPhotoService _photoService;
-        public UsersController(IUserRepository userRepository, IMapper mapper, DContext context, IPhotoService photoService)
+        private readonly UserManager<AppUser> _userManager;
+        private readonly RoleManager<AppRole> _roleManager;
+        public UsersController(IUserRepository userRepository,
+        IMapper mapper, DContext context, IPhotoService photoService,
+        UserManager<AppUser> userManager, RoleManager<AppRole> roleManager)
         {
+            this._roleManager = roleManager;
+            this._userManager = userManager;
             this._photoService = photoService;
             _context = context;
             this._mapper = mapper;
@@ -39,7 +47,7 @@ namespace API.Controllers
             userPrams.CurrentUsername = user.UserName;
             if (string.IsNullOrEmpty(userPrams.Gender))
                 userPrams.Gender = user.Gender;
-                
+
             var users = await _userRepository.GetMembersAsync(userPrams);
             // var usersToReturn = _mapper.Map<IEnumerable<MemberDto>>(users);
             Response.AddPaginationHeader(users.CurrentPage, users.TotalPages, users.TotalCount, users.PageSize);
@@ -63,21 +71,33 @@ namespace API.Controllers
             if (await _userRepository.SaveAllAsync()) return NoContent();
             return BadRequest("error while updating user");
         }
-        // [AllowAnonymous]
-        // [HttpPost("Seed")]
-        // public async Task<ActionResult<List<AppUser>>> Seed(List<AppUser> users)
-        // {
-        //     foreach (var user in users)
-        //     {
-        //         var hmac = new HMACSHA512();
-        //         user.UserName=user.UserName.ToLower();
-        //         user.PasswordHash=hmac.ComputeHash(Encoding.UTF8.GetBytes("P@$$w0rd"));
-        //         user.PasswordSalt=hmac.Key;
-        //         _context.AppUsers.Add(user);
-        //     }
-        //     await _context.SaveChangesAsync();
-        //     return users;
-        // }
+        [AllowAnonymous]
+        [HttpPost("Seed")]
+        public async Task<ActionResult<List<AppUser>>> Seed(List<AppUser> users)
+        {
+            var roles = new List<AppRole>(){
+                new AppRole{Name="Member"},
+                new AppRole{Name="Admin"},
+                new AppRole{Name="Moderator"}
+        };
+            foreach (var role in roles)
+            {
+                await _roleManager.CreateAsync(role);
+            }
+            foreach (var user in users)
+            {
+                user.UserName = user.UserName.ToLower();
+                await _userManager.CreateAsync(user, "P@$$w0rd");
+                await _userManager.AddToRoleAsync(user, "Member");
+            }
+            var admin = new AppUser
+            {
+                UserName = "admin"
+            };
+            await _userManager.CreateAsync(admin, "P@$$w0rd");
+            await _userManager.AddToRolesAsync(admin, new[] { "Admin", "Moderator" });
+            return users;
+        }
         [HttpPost("add-photo")]
         public async Task<ActionResult<PhotoDto>> UploadPhoto(IFormFile file)
         {
