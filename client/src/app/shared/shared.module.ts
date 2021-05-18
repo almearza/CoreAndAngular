@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ModalModule } from 'ngx-bootstrap/modal';
 import { TabsModule } from 'ngx-bootstrap/tabs';
 
 
@@ -9,10 +10,12 @@ import { TabsModule } from 'ngx-bootstrap/tabs';
   ],
   imports: [
     CommonModule,
-    TabsModule.forRoot()
+    TabsModule,
+    ModalModule.forRoot(),
   ],
   exports:[
-    TabsModule
+    TabsModule,
+    ModalModule
   ]
 })
 export class SharedModule { 
