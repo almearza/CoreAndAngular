@@ -34,3 +34,11 @@
 .animate {
     transition: ease-in-out .3s all;
 }
+@keyframes fa-blenk {
+    0%{opacity:1};
+    100%{opacity:0.4};
+}
+.is-online{
+    animation: fa-blenk 1.5s linear infinite;
+    color: rgb(1, 189, 42);
+}

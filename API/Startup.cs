@@ -8,6 +8,7 @@ using API.Extensions;
 using API.Interfaces;
 using API.Middleware;
 using API.Services;
+using API.SignalR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -37,11 +38,17 @@ namespace API
         {
             services.AddApplicationServiceExtensions(_config);
             services.AddControllers();
+
+            services.AddSignalR();
+            services.AddSingleton<PresenceTracker>();
+
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "API", Version = "v1" });
             });
+
             services.AddCors();
+            
             services.AddIdentityServiceExtensions(_config);
         }
 
@@ -59,12 +66,18 @@ namespace API
             app.UseHttpsRedirection();
 
             app.UseRouting();
-            app.UseCors(policy => policy.AllowAnyHeader().AllowAnyMethod().WithOrigins("https://localhost:4200"));
+            app.UseCors(policy => policy
+            .AllowCredentials()//this because we recieve token as query pram in signalR
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .WithOrigins("https://localhost:4200"));
             app.UseAuthentication();
             app.UseAuthorization();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHub<PresenceHub>("hubs/presence");//for signalR
+                endpoints.MapHub<MessageHub>("hubs/message");//for signalR
             });
         }
     }
