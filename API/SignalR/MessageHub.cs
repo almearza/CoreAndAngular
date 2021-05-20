@@ -24,11 +24,13 @@ namespace API.SignalR
         }
         public async override Task OnConnectedAsync()
         {
-            var context = Context.GetHttpContext();
-            var otherUser = context.Request.Query["user"];
-            var groupName = GetGroupName(context.User.GetUsername(), otherUser);
-            var messages = await _messageRepository.GetMessageThreadAsync(context.User.GetUsername(), otherUser);
+            var httpContext = Context.GetHttpContext();
+            var otherUser = httpContext.Request.Query["user"];
+            var groupName = GetGroupName(Context.User.GetUsername(), otherUser);
+            await Groups.AddToGroupAsync(Context.ConnectionId,groupName);
+            var messages = await _messageRepository.GetMessageThreadAsync(Context.User.GetUsername(), otherUser);
             await Clients.Group(groupName).SendAsync("ReceiveMessageThread", messages);
+            Console.WriteLine(messages);
         }
         public override Task OnDisconnectedAsync(Exception exception)
         {

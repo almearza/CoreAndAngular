@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { HubConnection, HubConnectionBuilder } from '@microsoft/signalr';
 import { BehaviorSubject } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, take } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { Message } from '../_models/message';
 import { User } from '../_models/user';
@@ -17,7 +17,7 @@ export class MessageService {
   hubConnection: HubConnection;
   hubUrl = environment.hubUrl;
   private messageThreadSource=new BehaviorSubject<string[]>([]);
-  messages$ = this.messageThreadSource.asObservable();
+  messagesThread$ = this.messageThreadSource.asObservable();
 
 
   constructor(private http: HttpClient) { }
@@ -29,29 +29,41 @@ export class MessageService {
     prams = prams.append('container', container);
     return getPaginattedResult<Message[]>(this.http, this.baseUrl + 'messages', prams);
   }
-  getMessageThread(username: string) {
-    return this.http.get<Message[]>(this.baseUrl + 'messages/thread/' + username);
-  }
-  sendMessage(username: string, content: string) {
-    return this.http.post<Message>(this.baseUrl + 'messages', { recipientUsername: username, content });
+  // getMessageThread(username: string) {
+  //   return this.http.get<Message[]>(this.baseUrl + 'messages/thread/' + username);
+  // }
+  async sendMessage(username: string, content: string) {
+    // return this.http.post<Message>(this.baseUrl + 'messages', { recipientUsername: username, content });
+    return this.hubConnection.invoke('SendMessage', { recipientUsername: username, content }).catch(error=>{
+      console.log("invoking sendMessage() "+error);
+    });
   }
   deleteMessage(id: number) {
     return this.http.delete(this.baseUrl + 'messages/' + id);
   }
   createHubConnection(user: User,otherUsername:string) {
     this.hubConnection = new HubConnectionBuilder()
-      .withUrl(this.hubUrl + 'message', { accessTokenFactory: () => user.token })
+      .withUrl(this.hubUrl + 'message?user='+otherUsername, { accessTokenFactory: () => user.token })
       .withAutomaticReconnect()
       .build();
+
       this.hubConnection.start().catch(error=>{
         console.log(error);
+        
       });
+
       this.hubConnection.on('ReceiveMessageThread',messages=>{
         this.messageThreadSource.next(messages);
       });
-     
+      //push new message into the queue
+      this.hubConnection.on('NewMessage',message=>{
+        this.messagesThread$.pipe(take(1)).subscribe(messages=>{
+          this.messageThreadSource.next([...messages,message]);
+        })
+      });
   }
   stopHubConnection(){
+    if(this.hubConnection)
     this.hubConnection.stop().catch(error=>{
       console.log(error);
     })
