@@ -4,6 +4,7 @@ import { HubConnection, HubConnectionBuilder } from '@microsoft/signalr';
 import { BehaviorSubject } from 'rxjs';
 import { map, take } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
+import { Group } from '../_models/group';
 import { Message } from '../_models/message';
 import { User } from '../_models/user';
 import { getPaginattedHeaders, getPaginattedResult } from './pagination';
@@ -16,7 +17,7 @@ export class MessageService {
 
   hubConnection: HubConnection;
   hubUrl = environment.hubUrl;
-  private messageThreadSource=new BehaviorSubject<string[]>([]);
+  private messageThreadSource=new BehaviorSubject<Message[]>([]);
   messagesThread$ = this.messageThreadSource.asObservable();
 
 
@@ -61,6 +62,19 @@ export class MessageService {
           this.messageThreadSource.next([...messages,message]);
         })
       });
+      //listen for group updated to mark message as read
+      this.hubConnection.on('UpdatedGroup',(group:Group)=>{
+        if(group.connections.some(c=>c.username===otherUsername)){
+          this.messagesThread$.pipe(take(1)).subscribe(messages=>{
+            messages.forEach(message => {
+              if(!message.messageRead){
+                message.messageRead=new Date(Date.now());
+              }
+            });
+            this.messageThreadSource.next([...messages]);
+          })
+        }
+      })
   }
   stopHubConnection(){
     if(this.hubConnection)

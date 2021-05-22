@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { NgxGalleryAnimation, NgxGalleryImage, NgxGalleryOptions } from '@kolkov/ngx-gallery';
 import { TabDirective, TabsetComponent } from 'ngx-bootstrap/tabs';
 import { ToastrService } from 'ngx-toastr';
@@ -26,22 +26,25 @@ export class MemberDetailComponent implements OnInit, OnDestroy {
   galleryOptions: NgxGalleryOptions[];
   galleryImages: NgxGalleryImage[];
   constructor(private memberService: MemberService,
-    private router: ActivatedRoute,
+    private activatedRouter: ActivatedRoute,
+    private router:Router,
     private messageService: MessageService,
     private toastr: ToastrService,
     public presenceService: PresenceService,
     private accountService: AccountService) {
       this.accountService.currentUser$.pipe(take(1)).subscribe(user=>{
         this.user=user;
-      })
+        this.router.routeReuseStrategy.shouldReuseRoute=()=>false;
+      });
+      
      }
   
 
   ngOnInit(): void {
-    this.router.data.subscribe(data => {
+    this.activatedRouter.data.subscribe(data => {
       this.member = data.member;//member:key we used when we add resolver to route in approuting
     });
-    this.router.queryParams.subscribe(pram => {
+    this.activatedRouter.queryParams.subscribe(pram => {
       pram.tab ? this.activateTab(pram.tab) : this.activateTab(0);
     });
     this.galleryOptions = [
@@ -80,12 +83,16 @@ export class MemberDetailComponent implements OnInit, OnDestroy {
     this.activeTab = data;
     if (this.activeTab.heading === 'messages') {
       this.messageService.createHubConnection(this.user, this.member.username);
+      
     }else{
+      
+      
       this.messageService.stopHubConnection();
     }
 
   }
   ngOnDestroy(): void {
+    
     this.messageService.stopHubConnection();
   }
   // loadMessages() {
