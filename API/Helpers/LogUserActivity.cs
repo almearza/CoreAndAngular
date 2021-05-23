@@ -9,20 +9,14 @@ namespace API.Helpers
 {
     public class LogUserActivity : IAsyncActionFilter
     {
-        private readonly IUserRepository _userRepository;
-        public LogUserActivity(IUserRepository userRepository)
-        {
-            _userRepository = userRepository;
-
-        }
         public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
         {
             var resultContext = await next();
             if (!resultContext.HttpContext.User.Identity.IsAuthenticated) return;
-            var repo = resultContext.HttpContext.RequestServices.GetService<IUserRepository>();
-            var user =await repo.GetUserByIdAsync(resultContext.HttpContext.User.GetUserId());
+            var repo = resultContext.HttpContext.RequestServices.GetService<IUnitOfWork>();
+            var user =await repo.UserRepository.GetUserByIdAsync(resultContext.HttpContext.User.GetUserId());
             user.LastActive=DateTime.Now;
-            await repo.SaveAllAsync();
+            await repo.Complete();
         }
     }
 }

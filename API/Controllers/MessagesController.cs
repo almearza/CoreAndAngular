@@ -16,12 +16,10 @@ namespace API.Controllers
     public class MessagesController : ApiBaseController
     {
         private readonly IMapper _mapper;
-        private readonly IMessageRepository _messageRepository;
-        private readonly IUserRepository _userRepository;
-        public MessagesController(IUserRepository userRepository, IMessageRepository messageRepository, IMapper mapper)
+        private readonly IUnitOfWork _unitOfWork;
+        public MessagesController(IUnitOfWork unitOfWork, IMapper mapper)
         {
-            _userRepository = userRepository;
-            _messageRepository = messageRepository;
+            this._unitOfWork = unitOfWork;
             _mapper = mapper;
         }
         [HttpPost]
@@ -30,8 +28,8 @@ namespace API.Controllers
             if (string.IsNullOrEmpty(createMessage.RecipientUsername))
                 return BadRequest("no recipient username found");
 
-            var sender = await _userRepository.GetUserByUserNameAsync(User.GetUsername());
-            var recipient = await _userRepository.GetUserByUserNameAsync(createMessage.RecipientUsername.ToLower());
+            var sender = await _unitOfWork.UserRepository.GetUserByUserNameAsync(User.GetUsername());
+            var recipient = await _unitOfWork.UserRepository.GetUserByUserNameAsync(createMessage.RecipientUsername.ToLower());
 
             if (recipient == null)
                 return BadRequest("recipient user not found !");
@@ -45,8 +43,8 @@ namespace API.Controllers
                 RecipientUsername = recipient.UserName,
                 Content = createMessage.Content
             };
-            _messageRepository.AddMessage(message);
-            var result = await _messageRepository.SaveAllAsync();
+            _unitOfWork.MessageRepository.AddMessage(message);
+            var result = await _unitOfWork.Complete();
             if (result)
                 return Ok(_mapper.Map<MessageDto>(message));
 
@@ -57,7 +55,7 @@ namespace API.Controllers
         public async Task<ActionResult<IEnumerable<MessageDto>>> GetMessages([FromQuery] MessageParams messageParams)
         {
             messageParams.Username = User.GetUsername();
-            var messages = await _messageRepository.GetMessagesForUserAsync(messageParams);
+            var messages = await _unitOfWork.MessageRepository.GetMessagesForUserAsync(messageParams);
             Response.AddPaginationHeader(messages.CurrentPage, messages.TotalPages, messages.TotalCount, messages.PageSize);
             return Ok(messages);
         }
@@ -65,12 +63,12 @@ namespace API.Controllers
         public async Task<ActionResult<IEnumerable<MessageDto>>> GetMessagesThread(string username)
         {
             var currentUsername = User.GetUsername();
-            return Ok(await _messageRepository.GetMessageThreadAsync(currentUsername, username));
+            return Ok(await _unitOfWork.MessageRepository.GetMessageThreadAsync(currentUsername, username));
         }
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteMessage(int id)
         {
-            var message = await _messageRepository.GetMessageAsync(id);
+            var message = await _unitOfWork.MessageRepository.GetMessageAsync(id);
             var currentUsername = User.GetUsername();
             if (message == null ||
             (message.SenderUsername != currentUsername && message.RecipientUsername != currentUsername))
@@ -79,10 +77,10 @@ namespace API.Controllers
             if (message.SenderUsername == currentUsername) message.SenderDelete = true;
             if (message.RecipientUsername == currentUsername) message.RecipientDelete = true;
             if (message.SenderDelete && message.RecipientDelete)
-                _messageRepository.DeleteMessage(message);
-                if(await _messageRepository.SaveAllAsync())
+                _unitOfWork.MessageRepository.DeleteMessage(message);
+            if (await _unitOfWork.Complete())
                 return Ok();
-                return BadRequest("some thing went wrong !");
+            return BadRequest("some thing went wrong !");
         }
     }
 }
