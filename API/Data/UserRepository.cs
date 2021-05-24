@@ -66,5 +66,10 @@ namespace API.Data
             .ProjectTo<MemberDto>(_mapper.ConfigurationProvider).AsNoTracking()
             ,userPrams.PageNumber,userPrams.PageSize);
         }
+
+        public async Task<string> GetUserGender(string username)
+        {
+            return await _context.Users.Where(u=>u.UserName==username).Select(u=>u.Gender).FirstOrDefaultAsync();
+        }
     }
 }

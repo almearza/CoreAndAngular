@@ -14,17 +14,17 @@ namespace API.Controllers
     public class AccountController : ApiBaseController
     {
         private readonly ITokenService _tokenService;
-        private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
         private readonly SignInManager<AppUser> _signInManager;
         private readonly UserManager<AppUser> _userManager;
-        public AccountController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, ITokenService tokenService,
-        IUserRepository userRepository, IMapper mapper)
+        private readonly IUnitOfWork _unitOfWork;
+        public AccountController(IUnitOfWork unitOfWork, UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, ITokenService tokenService,
+        IMapper mapper)
         {
+            this._unitOfWork = unitOfWork;
             this._userManager = userManager;
             this._signInManager = signInManager;
             _mapper = mapper;
-            this._userRepository = userRepository;
             _tokenService = tokenService;
 
         }
@@ -52,7 +52,7 @@ namespace API.Controllers
         [HttpPost("login")]
         public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
         {
-            var user = await _userRepository.GetUserByUserNameAsync(loginDto.UserName.ToLower());
+            var user = await _unitOfWork.UserRepository.GetUserByUserNameAsync(loginDto.UserName.ToLower());
             if (user == null) return Unauthorized("invalid username");
 
             var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);

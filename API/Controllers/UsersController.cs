@@ -43,17 +43,16 @@ namespace API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<MemberDto>>> GetUsers([FromQuery] UserPrams userPrams)
         {
-            var user = await _unitOfWork.UserRepository.GetUserByUserNameAsync(User.GetUsername());
-            userPrams.CurrentUsername = user.UserName;
+            var gender = await _unitOfWork.UserRepository.GetUserGender(User.GetUsername());
+            userPrams.CurrentUsername = User.GetUsername();
             if (string.IsNullOrEmpty(userPrams.Gender))
-                userPrams.Gender = user.Gender;
+                userPrams.Gender = gender;
 
             var users = await _unitOfWork.UserRepository.GetMembersAsync(userPrams);
             // var usersToReturn = _mapper.Map<IEnumerable<MemberDto>>(users);
             Response.AddPaginationHeader(users.CurrentPage, users.TotalPages, users.TotalCount, users.PageSize);
             return Ok(users);
         }
-        // [Authorize]
         [HttpGet("{username}", Name = "GetUser")]
         public async Task<ActionResult<MemberDto>> GetUser(string username)
         {
