@@ -14,7 +14,7 @@ namespace API.Controllers
     public class LikesController : ApiBaseController
     {
         private readonly IUnitOfWork _unitOfWork;
-        public LikesController(IUnitOfWork unitOfWork, ILikesRepository likesRepository)
+        public LikesController(IUnitOfWork unitOfWork)
         {
             this._unitOfWork = unitOfWork;
 

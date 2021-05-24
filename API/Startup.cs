@@ -73,11 +73,14 @@ namespace API
             .WithOrigins("https://localhost:4200"));
             app.UseAuthentication();
             app.UseAuthorization();
+            app.UseDefaultFiles();//if there is an index.html then wil be used
+            app.UseStaticFiles();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
                 endpoints.MapHub<PresenceHub>("hubs/presence");//for signalR
                 endpoints.MapHub<MessageHub>("hubs/message");//for signalR
+                endpoints.MapFallbackToController("Index","Fallback");//to handle path of angular
             });
         }
     }
