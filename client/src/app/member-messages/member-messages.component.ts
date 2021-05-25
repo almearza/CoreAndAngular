@@ -5,26 +5,29 @@ import { MemberService } from '../_services/member.service';
 import { MessageService } from '../_services/message.service';
 
 @Component({
-  changeDetection:ChangeDetectionStrategy.OnPush,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-member-messages',
   templateUrl: './member-messages.component.html',
   styleUrls: ['./member-messages.component.css']
 })
 export class MemberMessagesComponent implements OnInit {
-  @ViewChild('sendMessageForm') messageForm:NgForm;
+  @ViewChild('sendMessageForm') messageForm: NgForm;
   // @Input() messages: Message[] = [];
-  @Input() username:string;
-  messageContent:string;
-
+  @Input() username: string;
+  messageContent: string;
+  loading = false;
   constructor(public messageService: MessageService) { }
 
   ngOnInit(): void {
 
   }
-  sendMessage(){
-    this.messageService.sendMessage(this.username,this.messageContent).then(()=>{
+  sendMessage() {
+    this.loading = true;
+    this.messageService.sendMessage(this.username, this.messageContent).then(() => {
       // this.messages.push(message); this will be done by the hub
       this.messageForm.reset();
+    }).finally(() => {
+      this.loading = false;
     })
   }
 
